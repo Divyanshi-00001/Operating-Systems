@@ -1,0 +1,50 @@
+// sum the array in parent process then child will tell that sum is prime or not.
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+#include <string.h>
+
+int main() {
+    pid_t p;
+    int fd[2];
+    int arr[] = {1,2,3,4,5};
+    if(pipe(fd)==-1) {
+        printf("Pipe failed\n");
+        return(0);
+    }
+    p=fork();
+    if(p<0) {
+        printf("fork failed\n");
+        return(0);
+    }
+    else if(p==0) {
+    //    sleep(10);
+        close(fd[1]);
+        int n;
+        read(fd[0],&n,sizeof(n));
+        close(fd[0]);
+        int c=0;
+        for(int i=2;i*i<=n;i++) {
+            if(n%i==0) {
+                c=1;
+                printf("not prime");
+            }
+        }
+        if(c==0) printf("prime");
+        exit(0);
+    }
+    else {
+        close(fd[0]);
+        int s=0;
+        for(int i=0;i<5;i++) {
+            s+=arr[i];
+        }
+        write(fd[1],&s,sizeof(s));
+        close(fd[1]);
+        exit(0);
+    }
+    return(0);
+}
